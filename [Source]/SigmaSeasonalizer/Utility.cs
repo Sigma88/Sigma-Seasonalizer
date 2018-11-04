@@ -1,5 +1,6 @@
 ﻿using System;
 using UnityEngine;
+using Kopernicus.Components;
 
 
 namespace SigmaSeasonalizerPlugin
@@ -45,6 +46,37 @@ namespace SigmaSeasonalizerPlugin
             );
 
             return c;
+        }
+
+        static Shader _shader = null;
+
+        internal static Shader shader
+        {
+            get
+            {
+                if (_shader == null)
+                {
+                    ShaderLoader.LoadAssetBundle("Sigma/Seasonalizer/Shaders/", "LerpTextures");
+                    _shader = ShaderLoader.GetShader("Unlit/Dissolve2Tex");
+                }
+
+                return _shader;
+            }
+        }
+
+        static Material _material;
+
+        internal static Material material
+        {
+            get
+            {
+                if (_material == null)
+                {
+                    _material = new Material(shader);
+                }
+
+                return _material;
+            }
         }
     }
 }
