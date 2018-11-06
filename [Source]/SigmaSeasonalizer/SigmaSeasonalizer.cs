@@ -1,52 +1,36 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 
 namespace SigmaSeasonalizerPlugin
 {
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
-    public class AddSeasons : MonoBehaviour
+    public class SigmaSeasonalizer : MonoBehaviour
     {
         void Start()
         {
-            SortedDictionary<double, Material> materials = new SortedDictionary<double, Material>();
             int n = FlightGlobals.Bodies.Count;
-            int i = 0;
-            foreach (var item in FlightGlobals.Bodies)
+
+            for (int i = 0; i < n; i++)
             {
-                materials.Add(Mathf.PI * 2 / n * i, Instantiate(item.scaledBody.GetComponent<Renderer>().material));
-                i++;
+                CelestialBody body = FlightGlobals.Bodies[i];
 
-                ScaledSeasons seasons = item.scaledBody.AddOrGetComponent<ScaledSeasons>();
+                if (SigmaSeasonalizerLoader.scaledSeasonsDictionary.TryGetValue(body?.transform?.name, out ConfigNode[] nodes))
+                {
+                    ScaledSeasons seasons = body.scaledBody.AddOrGetComponent<ScaledSeasons>();
+                    seasons.body = body;
 
-                seasons.body = item;
-                seasons.materials = materials;
+                    foreach (var item in nodes)
+                    {
+                        if (double.TryParse(item.GetValue("meanAnomaly"), out double meanAnomaly))
+                        {
+                            MaterialContainer material = MaterialContainer.Load(seasons.shader, item);
+
+                            if (material != null)
+                                seasons.materials.Add(meanAnomaly, material);
+                        }
+                    }
+                }
             }
-        }
-    }
-
-    internal class ScaledSeasons : MonoBehaviour
-    {
-        bool active = false;
-        internal CelestialBody body = null;
-        internal SortedDictionary<double, Material> materials = new SortedDictionary<double, Material>();
-
-        void Update()
-        {
-            if (active)
-            {
-                GetComponent<Renderer>()?.material?.Evaluate(materials, (body.orbit.meanAnomaly + Mathf.PI * 2) % (Mathf.PI * 2));
-            }
-        }
-
-        void OnBecameVisible()
-        {
-            active = true;
-        }
-
-        void OnBecameInvisible()
-        {
-            active = false;
         }
     }
 }

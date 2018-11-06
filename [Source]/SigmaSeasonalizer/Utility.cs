@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Linq;
 using UnityEngine;
 using Kopernicus.Components;
+using Kopernicus.OnDemand;
+using Object = UnityEngine.Object;
 
 
 namespace SigmaSeasonalizerPlugin
 {
     internal static class Utility
     {
+        // Lerp
         internal static object Lerp(object a, object b, double t)
         {
             if (a.GetType() == typeof(double))
@@ -48,6 +52,7 @@ namespace SigmaSeasonalizerPlugin
             return c;
         }
 
+        // Shaders
         static Shader _shader = null;
 
         internal static Shader shader
@@ -64,6 +69,7 @@ namespace SigmaSeasonalizerPlugin
             }
         }
 
+        // Material
         static Material _material;
 
         internal static Material material
@@ -76,6 +82,55 @@ namespace SigmaSeasonalizerPlugin
                 }
 
                 return _material;
+            }
+        }
+
+        // Texture Management
+        internal static Texture LoadTexture(string name)
+        {
+            Texture output = Resources.FindObjectsOfTypeAll<Texture>().FirstOrDefault(t => t.name == name);
+
+            if (output == null && OnDemandStorage.TextureExists(name))
+            {
+                Debug.Log("Utility", "Loading Texture => " + name);
+                output = OnDemandStorage.LoadTexture(name, false, true, true);
+            }
+
+            return output;
+        }
+
+        internal static void UnloadTexture(Material material, string name)
+        {
+            Texture texture = material.GetTexture(name);
+            string name_a = texture.name;
+            string name_b = texture.name;
+
+            if (texture.GetType() == typeof(RenderTexture))
+            {
+                string[] split = name_a.Split(';');
+
+                if (split.Length == 2)
+                {
+                    name_a = split[0];
+                    name_b = split[1];
+                    UnloadTexture(name_b);
+                }
+            }
+
+            UnloadTexture(name_a);
+        }
+
+        internal static void UnloadTexture(string name)
+        {
+            UnloadTexture(Resources.FindObjectsOfTypeAll<Texture>().FirstOrDefault(t => t.name == name));
+        }
+
+        internal static void UnloadTexture(Texture texture)
+        {
+            if (OnDemandStorage.TextureExists(texture?.name))
+            {
+                Debug.Log("Utility", "Unloading Texture => " + texture?.name);
+                Object.DestroyImmediate(texture);
             }
         }
     }

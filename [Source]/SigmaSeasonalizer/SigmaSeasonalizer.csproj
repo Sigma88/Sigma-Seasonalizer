@@ -32,6 +32,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="SigmaSeasonalizer.cs" />
+    <Compile Include="SigmaSeasonalizerLoader.cs" />
+    <Compile Include="MaterialContainer.cs" />
+    <Compile Include="ScaledSeasons.cs" />
     <Compile Include="DebugLogger.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
